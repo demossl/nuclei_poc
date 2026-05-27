@@ -1,0 +1,56 @@
+id: oscommerce-detect
+
+info:
+  name: osCommerce Detection
+  author: Chirag Mistry
+  severity: info
+  description: |
+    An instance running osCommerce is detected by looking for specific HTTP headers, HTML tags, and known endpoints.
+  metadata:
+    max-request: 8
+    shodan-query: http.component:"osCommerce"
+  tags: oscommerce,detect,tech
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+      - "{{BaseURL}}/robots.txt"
+      - "{{BaseURL}}/sitemap.xml"
+      - "{{BaseURL}}/favicon.ico"
+      - "{{BaseURL}}/admin"
+      - "{{BaseURL}}/includes/modules/"
+      - "{{BaseURL}}/catalog/includes/javascript/oscommerce.js"
+      - "{{BaseURL}}/checkout_payment.php"
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: response
+        words:
+          - "Powered by osCommerce"
+          - "oscommerce.com"
+          - "X-Powered-By-osCommerce"
+        condition: or
+        case-insensitive: true
+
+      - type: status
+        status:
+          - 200
+
+    extractors:
+      - type: regex
+        part: body
+        name: version
+        regex:
+          - 'osCommerce ([0-9.]+)'
+          - 'Powered by osCommerce ([0-9.]+)'
+
+      - type: regex
+        part: body
+        name: oscommerce_id
+        regex:
+          - 'oscommerce-site-id=([a-z0-9]+)'
+          - 'oscommerce\.com/([^/]+)'
+# digest: 4a0a0047304502204608eb86c1fd665ff79a04ed9da5d8c01ed181022da0bdc4cb0f90ca881afb57022100dc9c581f737946a15813022dd7fb0e5e53d09823df4fdebe17c3ef3c1ab3e028:922c64590222798bb761d5b6d8e72950
